@@ -1,0 +1,213 @@
+{
+  "entities": {
+    "Tenant": {
+      "title": "Tenant",
+      "description": "Represents a repair shop (tenant).",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the repair shop" },
+        "plan": { "type": "string", "enum": ["CORE", "PRO", "ENTERPRISE"] },
+        "planExpiresAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "plan", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile for authentication and authorization.",
+      "type": "object",
+      "properties": {
+        "tenantId": { "type": "string", "description": "ID of the tenant this user belongs to" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["SuperAdmin", "Gestor", "Mecanico", "Atendimento"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["tenantId", "email", "name", "role", "createdAt"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "A customer of the repair shop.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "document": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "phone", "createdAt"]
+    },
+    "Vehicle": {
+      "title": "Vehicle",
+      "description": "A vehicle belonging to a customer.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "make": { "type": "string" },
+        "model": { "type": "string" },
+        "year": { "type": "number" },
+        "plate": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "make", "model", "year", "plate", "createdAt"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "A service offered by the repair shop.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "defaultPrice": { "type": "number" },
+        "recallMonths": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "category", "defaultPrice", "createdAt"]
+    },
+    "Part": {
+      "title": "Part",
+      "description": "A part in the repair shop's inventory.",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string" },
+        "name": { "type": "string" },
+        "unit": { "type": "string" },
+        "cost": { "type": "number" },
+        "price": { "type": "number" },
+        "stockQty": { "type": "number" },
+        "minQty": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sku", "name", "unit", "cost", "price", "stockQty", "minQty", "createdAt"]
+    },
+    "Quote": {
+      "title": "Quote",
+      "description": "A quote for a customer's vehicle.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "status": { "type": "string", "enum": ["rascunho", "enviado", "aceito", "rejeitado"] },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "vehicleId", "status", "totalAmount", "createdAt"]
+    },
+    "QuoteItem": {
+      "title": "QuoteItem",
+      "description": "An item (service or part) in a quote.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["service", "part"] },
+        "refId": { "type": "string" },
+        "qty": { "type": "number" },
+        "unitPrice": { "type": "number" }
+      },
+      "required": ["type", "refId", "qty", "unitPrice"]
+    },
+    "WorkOrder": {
+      "title": "WorkOrder",
+      "description": "An approved quote converted to a work order.",
+      "type": "object",
+      "properties": {
+        "customerId": { "type": "string" },
+        "vehicleId": { "type": "string" },
+        "status": { "type": "string", "enum": ["aberta", "em_andamento", "concluida", "cancelada"] },
+        "totalAmount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "vehicleId", "status", "totalAmount", "createdAt"]
+    },
+    "WhatsappConversation": {
+      "title": "WhatsappConversation",
+      "description": "A WhatsApp conversation with a contact.",
+      "type": "object",
+      "properties": {
+        "contactPhone": { "type": "string" },
+        "contactName": { "type": "string" },
+        "status": { "type": "string", "enum": ["aberto", "fechado"] },
+        "lastMessageAt": { "type": "string", "format": "date-time" },
+        "botActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["contactPhone", "contactName", "status", "botActive", "createdAt"]
+    },
+    "WhatsappMessage": {
+      "title": "WhatsappMessage",
+      "description": "A message within a WhatsApp conversation.",
+      "type": "object",
+      "properties": {
+        "direction": { "type": "string", "enum": ["inbound", "outbound"] },
+        "content": { "type": "string" },
+        "status": { "type": "string", "enum": ["sent", "delivered", "read", "received"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["direction", "content", "status", "createdAt"]
+    },
+    "Lead": {
+      "title": "Lead",
+      "description": "A potential customer lead.",
+      "type": "object",
+      "properties": {
+        "contactName": { "type": "string" },
+        "phone": { "type": "string" },
+        "vehicleHint": { "type": "string" },
+        "source": { "type": "string" },
+        "status": { "type": "string", "enum": ["novo", "em_atendimento", "convertido", "perdido"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["contactName", "phone", "source", "status", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/tenants/{tenantId}": {
+      "schema": { "$ref": "#/entities/Tenant" },
+      "description": "Tenant data"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles"
+    },
+    "/tenants/{tenantId}/customers/{customerId}": {
+      "schema": { "$ref": "#/entities/Customer" },
+      "description": "Tenant customers"
+    },
+    "/tenants/{tenantId}/vehicles/{vehicleId}": {
+      "schema": { "$ref": "#/entities/Vehicle" },
+      "description": "Tenant vehicles"
+    },
+    "/tenants/{tenantId}/services/{serviceId}": {
+      "schema": { "$ref": "#/entities/Service" },
+      "description": "Tenant services"
+    },
+    "/tenants/{tenantId}/parts/{partId}": {
+      "schema": { "$ref": "#/entities/Part" },
+      "description": "Tenant parts"
+    },
+    "/tenants/{tenantId}/quotes/{quoteId}": {
+      "schema": { "$ref": "#/entities/Quote" },
+      "description": "Tenant quotes"
+    },
+    "/tenants/{tenantId}/quotes/{quoteId}/items/{itemId}": {
+      "schema": { "$ref": "#/entities/QuoteItem" },
+      "description": "Quote items"
+    },
+    "/tenants/{tenantId}/work_orders/{workOrderId}": {
+      "schema": { "$ref": "#/entities/WorkOrder" },
+      "description": "Tenant work orders"
+    },
+    "/tenants/{tenantId}/whatsapp_conversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/WhatsappConversation" },
+      "description": "Tenant whatsapp conversations"
+    },
+    "/tenants/{tenantId}/whatsapp_conversations/{conversationId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/WhatsappMessage" },
+      "description": "Tenant whatsapp messages"
+    },
+    "/tenants/{tenantId}/leads/{leadId}": {
+      "schema": { "$ref": "#/entities/Lead" },
+      "description": "Tenant leads"
+    }
+  }
+}

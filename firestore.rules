@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid)) ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data : null;
+    }
+    
+    function isTenantMember(tenantId) {
+      return isAuthenticated() && getUserData() != null && getUserData().tenantId == tenantId;
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && getUserData() != null && getUserData().role == 'SuperAdmin';
+    }
+    
+    function isTenantAdmin(tenantId) {
+      return isTenantMember(tenantId) && getUserData() != null && getUserData().role == 'Gestor';
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    // Server Secrets (for backend authentication)
+    match /server_secrets/{secretId} {
+      allow read, write: if false; // Only accessible by Firebase Admin
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // A user can read their own profile, or SuperAdmins can read all, or users in the same tenant
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSuperAdmin() || resource.data.email == request.auth.token.email || resource.data.tenantId == getUserData().tenantId);
+      // Allow new users to create their own profile, or Gestores to create team members
+      allow create: if isAuthenticated() && (request.auth.uid == userId || (getUserData() != null && getUserData().role == 'Gestor' && request.resource.data.tenantId == getUserData().tenantId));
+      allow update: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId && request.resource.data.role == resource.data.role && request.resource.data.tenantId == resource.data.tenantId) || (getUserData() != null && getUserData().role == 'Gestor' && resource.data.tenantId == getUserData().tenantId);
+      allow delete: if isSuperAdmin() || (isAuthenticated() && resource.data.email == request.auth.token.email) || (getUserData() != null && getUserData().role == 'Gestor' && resource.data.tenantId == getUserData().tenantId);
+    }
+
+    // Tenants collection
+    match /tenants/{tenantId} {
+      // Tenant members can read their own tenant data
+      allow read: if isTenantMember(tenantId) || isSuperAdmin();
+      // Allow new users to create a tenant
+      allow create: if isAuthenticated();
+      allow write: if isSuperAdmin() || isTenantAdmin(tenantId);
+      
+      // Subcollections within a tenant
+      match /{document=**} {
+        // Any member of the tenant can read and write to their tenant's subcollections
+        allow read, write: if isTenantMember(tenantId) || isSuperAdmin();
+      }
+    }
+  }
+}
